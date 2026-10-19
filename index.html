@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KasKuETS</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+
+<body>
+  <header class="kepala">
+    <h1>KasKuETS</h1>
+    <p class="subjudul">Uang pribadi dan uang usaha dicatat terpisah, supaya untung usaha jelas.</p>
+  </header>
+
+  <main class="isi">
+    <!-- FORM TRANSAKSI (W1) -->
+    <section id="tambah" class="blok">
+      <h2>Catat transaksi</h2>
+      <form id="form-transaksi" novalidate>
+        <fieldset class="pilihan">
+          <legend>Jenis</legend>
+          <label><input type="radio" name="jenis" value="pengeluaran" checked> Pengeluaran</label>
+          <label><input type="radio" name="jenis" value="pemasukan"> Pemasukan</label>
+        </fieldset>
+
+        <div class="kolom-form">
+          <div class="baris-form">
+            <label for="tanggal">Tanggal</label>
+            <input type="date" id="tanggal">
+          </div>
+          <div class="baris-form">
+            <label for="dompet">Dompet</label>
+            <select id="dompet"></select>
+          </div>
+          <div class="baris-form">
+            <label for="kategori">Kategori</label>
+            <select id="kategori"></select>
+          </div>
+          <div class="baris-form">
+            <label for="nominal">Nominal (Rp)</label>
+            <input type="number" id="nominal" min="1" step="1" inputmode="numeric">
+          </div>
+          <div class="baris-form lebar-penuh">
+            <label for="catatan">Catatan (opsional)</label>
+            <input type="text" id="catatan" maxlength="100" autocomplete="off">
+          </div>
+        </div>
+
+        <p id="pesan-form" class="pesan" aria-live="polite"></p>
+        <div class="baris-tombol">
+          <button type="submit" id="tombol-simpan" class="tombol tombol-utama">Simpan transaksi</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- DAFTAR TRANSAKSI (W2, W3) -->
+    <section id="riwayat" class="blok">
+      <h2>Riwayat transaksi</h2>
+      <p id="info-hasil" class="catatan-kecil" aria-live="polite"></p>
+      <ul id="daftar" class="daftar"></ul>
+      <p id="kosong" class="kosong" hidden></p>
+    </section>
+  </main>
+</body>
+</html>
