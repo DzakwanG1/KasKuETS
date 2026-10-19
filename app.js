@@ -4,12 +4,15 @@ const KATEGORI = ["Penjualan", "Belanja stok", "Operasional", "Makan", "Transpor
 const DOMPET = ["Pribadi", "Usaha"];
 
 const formTransaksi  = document.querySelector("#form-transaksi");
+const judulForm      = document.querySelector("#judul-form");
 const inputTanggal   = document.querySelector("#tanggal");
 const pilihDompet    = document.querySelector("#dompet");
 const pilihKategori  = document.querySelector("#kategori");
 const inputNominal   = document.querySelector("#nominal");
 const inputCatatan   = document.querySelector("#catatan");
 const pesanForm      = document.querySelector("#pesan-form");
+const tombolSimpan   = document.querySelector("#tombol-simpan");
+const tombolBatal    = document.querySelector("#tombol-batal");
 
 const daftarEl       = document.querySelector("#daftar");
 const kosongEl       = document.querySelector("#kosong");
@@ -30,8 +33,15 @@ const pindahNominal  = document.querySelector("#pindah-nominal");
 const pindahCatatan  = document.querySelector("#pindah-catatan");
 const pesanPindah    = document.querySelector("#pesan-pindah");
 
+const filterJenis    = document.querySelector("#filter-jenis");
+const filterKategori = document.querySelector("#filter-kategori");
+const filterDompet   = document.querySelector("#filter-dompet");
+const inputCari      = document.querySelector("#cari");
+
 let state = {
-  transaksi: []
+  transaksi: [],
+  filter: { jenis: "semua", kategori: "semua", dompet: "semua", kata: "" },
+  editId: null
 };
 
 function hariIni() {
@@ -150,15 +160,15 @@ function cekTransaksi(item) {
   if (item.tanggal === "") return "Tanggal wajib diisi.";
   if (!DOMPET.some(d => d === item.dompet)) return "Pilih dompet Pribadi atau Usaha.";
   if (item.kategori === "") return "Pilih kategori.";
-  if (!item.nominal || item.nominal < 0 || item.nominal % 1 !== 0) return "Nominal harus bilangan bulat lebih dari 0.";
-  if (item.catatan.length > MAKS_CATATAN) return `Catatan maksimal ${MAKS_CATATAN} karakter.`;
+  if (!item.nominal || item.nominal < 0 || item.nominal % 1 !== 0) return "Nominal harus bilangan bulat > 0.";
+  if (item.catatan.length > MAKS_CATATAN) return `Catatan maks ${MAKS_CATATAN} karakter.`;
   return "";
 }
 
 function cekPindah(item, daftar) {
   if (item.tanggal === "") return "Tanggal wajib diisi.";
-  if (item.dompet === item.dompetTujuan) return "Dompet asal dan tujuan harus berbeda.";
-  if (!item.nominal || item.nominal < 0 || item.nominal % 1 !== 0) return "Nominal harus bilangan bulat lebih dari 0.";
+  if (item.dompet === item.dompetTujuan) return "Dompet asal & tujuan harus berbeda.";
+  if (!item.nominal || item.nominal < 0 || item.nominal % 1 !== 0) return "Nominal bulat > 0.";
   
   const saldoAsal = saldoDompet(daftar, item.dompet);
   if (item.nominal > saldoAsal) {
@@ -168,7 +178,16 @@ function cekPindah(item, daftar) {
 }
 
 function ambilTampil(data) {
-  return data.transaksi.sort((a, b) => b.tanggal.localeCompare(a.tanggal) || b.id - a.id);
+  const kata = data.filter.kata.trim().toLowerCase();
+  return data.transaksi
+    .filter(t => {
+      if (data.filter.jenis !== "semua" && t.jenis !== data.filter.jenis) return false;
+      if (data.filter.kategori !== "semua" && t.kategori !== data.filter.kategori) return false;
+      if (data.filter.dompet !== "semua" && t.dompet !== data.filter.dompet && t.dompetTujuan !== data.filter.dompet) return false;
+      if (kata !== "" && !(t.catatan.toLowerCase().includes(kata) || t.kategori.toLowerCase().includes(kata))) return false;
+      return true;
+    })
+    .sort((a, b) => b.tanggal.localeCompare(a.tanggal) || b.id - a.id);
 }
 
 function buatItem(t) {
@@ -185,11 +204,17 @@ function buatItem(t) {
     info.appendChild(buatSel("span", `${formatTanggal(t.tanggal)} · ${t.kategori} · ${t.dompet}`, "meta"));
   }
   item.appendChild(info);
-
   item.appendChild(buatSel("p", formatRupiah(t.nominal), `nominal ${t.jenis}`));
 
   const aksi = document.createElement("div");
   aksi.className = "item-aksi";
+
+  if (t.jenis !== "pindah") {
+    const tombolUbah = buatSel("button", "Ubah", "tombol-kecil");
+    tombolUbah.type = "button";
+    tombolUbah.addEventListener("click", () => mulaiUbah(t));
+    aksi.appendChild(tombolUbah);
+  }
 
   const tombolHapus = buatSel("button", "Hapus", "tombol-kecil hapus");
   tombolHapus.type = "button";
@@ -206,8 +231,11 @@ function renderDaftar(data) {
   for (const t of tampil) {
     daftarEl.appendChild(buatItem(t));
   }
+  
   if (tampil.length === 0) {
-    kosongEl.textContent = "Belum ada transaksi. Isi formulir di atas untuk mulai mencatat.";
+    kosongEl.textContent = data.transaksi.length === 0
+      ? "Belum ada transaksi. Isi formulir di atas untuk mulai mencatat."
+      : "Tidak ada transaksi yang cocok dengan filter atau pencarian.";
   }
   kosongEl.hidden = tampil.length > 0;
   infoHasil.textContent = `Menampilkan ${tampil.length} dari ${data.transaksi.length} transaksi.`;
@@ -216,19 +244,50 @@ function renderDaftar(data) {
 function hapusTransaksi(id) {
   if (!confirm("Hapus transaksi ini?")) return;
   state.transaksi = state.transaksi.filter(t => t.id !== id);
+  if (state.editId === id) batalUbah();
   perbarui();
+}
+
+function mulaiUbah(t) {
+  state.editId = t.id;
+  inputTanggal.value = t.tanggal;
+  document.querySelector(`input[name="jenis"][value="${t.jenis}"]`).checked = true;
+  pilihDompet.value = t.dompet;
+  pilihKategori.value = t.kategori;
+  inputNominal.value = t.nominal;
+  inputCatatan.value = t.catatan;
+  pesanForm.textContent = "";
+  renderFormMode(state);
+  inputNominal.focus();
+}
+
+function batalUbah() {
+  state.editId = null;
+  formTransaksi.reset();
+  inputTanggal.value = hariIni();
+  pesanForm.textContent = "";
+  renderFormMode(state);
+}
+
+function renderFormMode(data) {
+  const modeUbah = data.editId !== null;
+  judulForm.textContent = modeUbah ? "Ubah transaksi" : "Catat transaksi";
+  tombolSimpan.textContent = modeUbah ? "Simpan perubahan" : "Simpan transaksi";
+  tombolBatal.hidden = !modeUbah;
 }
 
 function render(data) {
   renderDaftar(data);
   renderRingkasan(data.transaksi);
+  renderFormMode(data);
 }
 
 formTransaksi.addEventListener("submit", (event) => {
   event.preventDefault();
+  const modeUbah = state.editId !== null;
 
   const item = {
-    id: Date.now(),
+    id: modeUbah ? state.editId : Date.now(),
     tanggal: inputTanggal.value,
     jenis: document.querySelector('input[name="jenis"]:checked').value,
     dompet: pilihDompet.value,
@@ -243,17 +302,28 @@ formTransaksi.addEventListener("submit", (event) => {
     return;
   }
 
-  state.transaksi.push(item);
+  if (modeUbah) {
+    state.transaksi = state.transaksi.map(t => (t.id === state.editId ? item : t));
+  } else {
+    state.transaksi.push(item);
+  }
+
+  state.editId = null;
   const tersimpan = perbarui();
 
   formTransaksi.reset();
   inputTanggal.value = hariIni();
 
   if (tersimpan) {
-    tampilkanPesan(pesanForm, "Transaksi disimpan.", "sukses");
+    tampilkanPesan(pesanForm, modeUbah ? "Perubahan disimpan." : "Transaksi disimpan.", "sukses");
   } else {
-    tampilkanPesan(pesanForm, "Tercatat, tetapi browser tidak bisa menyimpan permanen.", "galat");
+    tampilkanPesan(pesanForm, "Browser tidak bisa menyimpan permanen.", "galat");
   }
+});
+
+tombolBatal.addEventListener("click", () => {
+  batalUbah();
+  render(state);
 });
 
 formPindah.addEventListener("submit", (event) => {
@@ -285,6 +355,11 @@ formPindah.addEventListener("submit", (event) => {
   tampilkanPesan(pesanPindah, "Dana berhasil dipindahkan.", "sukses");
 });
 
+filterJenis.addEventListener("change", (event) => { state.filter.jenis = event.target.value; render(state); });
+filterKategori.addEventListener("change", (event) => { state.filter.kategori = event.target.value; render(state); });
+filterDompet.addEventListener("change", (event) => { state.filter.dompet = event.target.value; render(state); });
+inputCari.addEventListener("input", (event) => { state.filter.kata = event.target.value; render(state); });
+
 function isiPilihan(selectEl, daftar, awal) {
   if (awal) {
     const opsiAwal = document.createElement("option");
@@ -305,8 +380,11 @@ function mulai() {
   isiPilihan(pilihDompet, DOMPET);
   isiPilihan(pindahDari, DOMPET);
   isiPilihan(pindahKe, DOMPET);
-  
   pindahKe.value = DOMPET[1];
+
+  isiPilihan(filterKategori, KATEGORI, { nilai: "semua", teks: "Semua" });
+  isiPilihan(filterDompet, DOMPET, { nilai: "semua", teks: "Semua" });
+
   inputTanggal.value = hariIni();
   pindahTanggal.value = hariIni();
   

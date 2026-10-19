@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KasKuETS — Pencatat Keuangan Pedagang</title>
+  <meta name="description" content="Pencatat keuangan pedagang kecil: dompet Pribadi dan Usaha terpisah, lengkap dengan pindah dana.">
+  <title>KasKuETS</title>
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
@@ -15,8 +16,8 @@
   </header>
 
   <main class="isi">
-    <section id="ringkasan" class="blok">
-      <h2>Ringkasan</h2>
+    <section id="ringkasan" class="blok" aria-labelledby="judul-ringkasan">
+      <h2 id="judul-ringkasan">Ringkasan</h2>
       <dl class="kartu-angka">
         <div>
           <dt>Total pemasukan</dt>
@@ -33,8 +34,8 @@
       </dl>
     </section>
 
-    <section id="dompet" class="blok">
-      <h2>Saldo per dompet</h2>
+    <section id="dompet" class="blok" aria-labelledby="judul-dompet">
+      <h2 id="judul-dompet">Saldo per dompet</h2>
       <dl class="kartu-angka">
         <div>
           <dt>Dompet Pribadi</dt>
@@ -52,8 +53,8 @@
       <p class="catatan-kecil">Untung usaha = pemasukan Usaha dikurangi pengeluaran Usaha. Pindah dana tidak dihitung sebagai pemasukan atau pengeluaran.</p>
     </section>
 
-    <section id="tambah" class="blok">
-      <h2>Catat transaksi</h2>
+    <section id="tambah" class="blok" aria-labelledby="judul-form">
+      <h2 id="judul-form">Catat transaksi</h2>
       <form id="form-transaksi" novalidate>
         <fieldset class="pilihan">
           <legend>Jenis</legend>
@@ -87,12 +88,13 @@
         <p id="pesan-form" class="pesan" aria-live="polite"></p>
         <div class="baris-tombol">
           <button type="submit" id="tombol-simpan" class="tombol tombol-utama">Simpan transaksi</button>
+          <button type="button" id="tombol-batal" class="tombol" hidden>Batal ubah</button>
         </div>
       </form>
     </section>
 
-    <section id="pindah" class="blok">
-      <h2>Pindah dana antar dompet</h2>
+    <section id="pindah" class="blok" aria-labelledby="judul-pindah">
+      <h2 id="judul-pindah">Pindah dana antar dompet</h2>
       <form id="form-pindah" novalidate>
         <div class="kolom-form">
           <div class="baris-form">
@@ -121,14 +123,39 @@
       </form>
     </section>
 
-    <section id="riwayat" class="blok">
-      <h2>Riwayat transaksi</h2>
+    <section id="riwayat" class="blok" aria-labelledby="judul-riwayat">
+      <h2 id="judul-riwayat">Riwayat transaksi</h2>
+
+      <div class="kolom-form">
+        <div class="baris-form">
+          <label for="filter-jenis">Jenis</label>
+          <select id="filter-jenis">
+            <option value="semua">Semua</option>
+            <option value="pemasukan">Pemasukan</option>
+            <option value="pengeluaran">Pengeluaran</option>
+            <option value="pindah">Pindah dana</option>
+          </select>
+        </div>
+        <div class="baris-form">
+          <label for="filter-kategori">Kategori</label>
+          <select id="filter-kategori"></select>
+        </div>
+        <div class="baris-form">
+          <label for="filter-dompet">Dompet</label>
+          <select id="filter-dompet"></select>
+        </div>
+        <div class="baris-form">
+          <label for="cari">Cari catatan</label>
+          <input type="search" id="cari" placeholder="ketik kata kunci">
+        </div>
+      </div>
+
       <p id="info-hasil" class="catatan-kecil" aria-live="polite"></p>
       <ul id="daftar" class="daftar"></ul>
       <p id="kosong" class="kosong" hidden></p>
     </section>
   </main>
-  
+
   <footer class="kaki">
     <p>Data tersimpan di browser ini (localStorage). Membuka di browser atau laptop lain tidak membawa data.</p>
   </footer>
