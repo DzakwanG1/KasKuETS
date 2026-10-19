@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KasKuETS</title>
+  <title>KasKuETS — Pencatat Keuangan Pedagang</title>
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
@@ -15,7 +15,43 @@
   </header>
 
   <main class="isi">
-    <!-- FORM TRANSAKSI (W1) -->
+    <section id="ringkasan" class="blok">
+      <h2>Ringkasan</h2>
+      <dl class="kartu-angka">
+        <div>
+          <dt>Total pemasukan</dt>
+          <dd id="total-masuk" class="angka">Rp 0</dd>
+        </div>
+        <div>
+          <dt>Total pengeluaran</dt>
+          <dd id="total-keluar" class="angka">Rp 0</dd>
+        </div>
+        <div>
+          <dt>Saldo total</dt>
+          <dd id="saldo-total" class="angka">Rp 0</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section id="dompet" class="blok">
+      <h2>Saldo per dompet</h2>
+      <dl class="kartu-angka">
+        <div>
+          <dt>Dompet Pribadi</dt>
+          <dd id="saldo-pribadi" class="angka">Rp 0</dd>
+        </div>
+        <div>
+          <dt>Dompet Usaha</dt>
+          <dd id="saldo-usaha" class="angka">Rp 0</dd>
+        </div>
+        <div>
+          <dt>Untung usaha</dt>
+          <dd id="untung-usaha" class="angka">Rp 0</dd>
+        </div>
+      </dl>
+      <p class="catatan-kecil">Untung usaha = pemasukan Usaha dikurangi pengeluaran Usaha. Pindah dana tidak dihitung sebagai pemasukan atau pengeluaran.</p>
+    </section>
+
     <section id="tambah" class="blok">
       <h2>Catat transaksi</h2>
       <form id="form-transaksi" novalidate>
@@ -40,11 +76,11 @@
           </div>
           <div class="baris-form">
             <label for="nominal">Nominal (Rp)</label>
-            <input type="number" id="nominal" min="1" step="1" inputmode="numeric">
+            <input type="number" id="nominal" min="1" step="1" inputmode="numeric" placeholder="mis. 25000">
           </div>
           <div class="baris-form lebar-penuh">
             <label for="catatan">Catatan (opsional)</label>
-            <input type="text" id="catatan" maxlength="100" autocomplete="off">
+            <input type="text" id="catatan" maxlength="100" autocomplete="off" placeholder="mis. Beli telur 5 kg">
           </div>
         </div>
 
@@ -55,7 +91,36 @@
       </form>
     </section>
 
-    <!-- DAFTAR TRANSAKSI (W2, W3) -->
+    <section id="pindah" class="blok">
+      <h2>Pindah dana antar dompet</h2>
+      <form id="form-pindah" novalidate>
+        <div class="kolom-form">
+          <div class="baris-form">
+            <label for="pindah-dari">Dari dompet</label>
+            <select id="pindah-dari"></select>
+          </div>
+          <div class="baris-form">
+            <label for="pindah-ke">Ke dompet</label>
+            <select id="pindah-ke"></select>
+          </div>
+          <div class="baris-form">
+            <label for="pindah-tanggal">Tanggal</label>
+            <input type="date" id="pindah-tanggal">
+          </div>
+          <div class="baris-form">
+            <label for="pindah-nominal">Nominal (Rp)</label>
+            <input type="number" id="pindah-nominal" min="1" step="1" inputmode="numeric" placeholder="mis. 100000">
+          </div>
+          <div class="baris-form lebar-penuh">
+            <label for="pindah-catatan">Catatan (opsional)</label>
+            <input type="text" id="pindah-catatan" maxlength="100" autocomplete="off" placeholder="mis. Ambil modal">
+          </div>
+        </div>
+        <p id="pesan-pindah" class="pesan" aria-live="polite"></p>
+        <button type="submit" class="tombol tombol-utama">Pindahkan dana</button>
+      </form>
+    </section>
+
     <section id="riwayat" class="blok">
       <h2>Riwayat transaksi</h2>
       <p id="info-hasil" class="catatan-kecil" aria-live="polite"></p>
@@ -63,5 +128,9 @@
       <p id="kosong" class="kosong" hidden></p>
     </section>
   </main>
+  
+  <footer class="kaki">
+    <p>Data tersimpan di browser ini (localStorage). Membuka di browser atau laptop lain tidak membawa data.</p>
+  </footer>
 </body>
 </html>
